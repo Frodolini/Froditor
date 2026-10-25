@@ -12,6 +12,12 @@ from . import fileio  # noqa: E402
 from .settings import DEFAULT_FONT, Settings  # noqa: E402
 
 UNTITLED = "Utan namn"
+# (namn i fillista, filending, mønster)
+FILE_TYPES = [
+    ("Tekstfiler (*.txt)", ".txt", ["*.txt", "*.TXT"]),
+    ("PowerShell-skript (*.ps1)", ".ps1", ["*.ps1", "*.PS1"]),
+]
+DEFAULT_SUFFIX = ".txt"
 MIN_FONT_SIZE = 6
 MAX_FONT_SIZE = 72
 MAX_HIGHLIGHTS = 5000
@@ -285,7 +291,7 @@ class FroditorWindow(Gtk.ApplicationWindow):
             callback(ok)
 
     def save_as(self, callback=None):
-        def chosen(file):
+        def chosen(file, suffix=DEFAULT_SUFFIX):
             if file is None:
                 if callback:
                     callback(False)
@@ -296,9 +302,9 @@ class FroditorWindow(Gtk.ApplicationWindow):
                 if callback:
                     callback(False)
                 return
-            # Legg til .txt om namnet ikkje har nokon filending.
+            # Utan filending: bruk den filtypen som er vald i lista.
             if not os.path.splitext(os.path.basename(path))[1]:
-                path += ".txt"
+                path += suffix
                 if os.path.exists(path):
                     def answer(index):
                         ok = index == 1 and self._write(path)
@@ -313,14 +319,22 @@ class FroditorWindow(Gtk.ApplicationWindow):
                 callback(ok)
         self._choose_file(save=True, callback=chosen)
 
+    def _save_encoding_for(self, path: str) -> str:
+        encoding = self.document.save_encoding
+        # Windows PowerShell 5.1 treng BOM for å lese æ, ø og å rett i UTF-8-skript.
+        if path.lower().endswith(".ps1") and (self.document.converted or not os.path.exists(path)):
+            encoding = fileio.UTF8_BOM
+        return encoding
+
     def _write(self, path: str) -> bool:
+        encoding = self._save_encoding_for(path)
         try:
-            fileio.write_text(path, self.get_text(), self.document.save_encoding, self.document.newline)
+            fileio.write_text(path, self.get_text(), encoding, self.document.newline)
         except OSError as error:
             self.show_error("Kunne ikkje lagre", f"«{os.path.basename(path)}»: {error.strerror or error}")
             return False
         converted = self.document.converted
-        self.document.encoding = self.document.save_encoding
+        self.document.encoding = encoding
         self.path = os.path.abspath(path)
         self.buffer.set_modified(False)
         self._update_title()
@@ -376,58 +390,71 @@ class FroditorWindow(Gtk.ApplicationWindow):
     # ---------------------------------------------------------- fildialogar
 
     def _filters(self):
-        text = Gtk.FileFilter(name="Tekstfiler (*.txt)")
-        text.add_pattern("*.txt")
-        text.add_pattern("*.TXT")
+        """Returnerer [(filter, filending)], og «Alle filer» sist med filending None."""
+        result = []
+        for name, suffix, patterns in FILE_TYPES:
+            file_filter = Gtk.FileFilter(name=name)
+            for pattern in patterns:
+                file_filter.add_pattern(pattern)
+            result.append((file_filter, suffix))
         everything = Gtk.FileFilter(name="Alle filer")
         everything.add_pattern("*")
-        return text, everything
+        result.append((everything, None))
+        return result
+
+    def _current_suffix(self) -> str:
+        if self.path:
+            suffix = os.path.splitext(self.path)[1].lower()
+            if any(suffix == known for _n, known, _p in FILE_TYPES):
+                return suffix
+        return DEFAULT_SUFFIX
 
     def _choose_file(self, save: bool, callback):
-        text_filter, all_filter = self._filters()
+        filters = self._filters()
+        current = self._current_suffix()
+        default_filter = next(f for f, suffix in filters if suffix == current)
         folder = os.path.dirname(self.path) if self.path else None
-        name = os.path.basename(self.path) if self.path else f"{UNTITLED}.txt"
 
-        if hasattr(Gtk, "FileDialog"):  # GTK 4.10 og nyare
-            dialog = Gtk.FileDialog(title="Lagre som" if save else "Opne fil", modal=True)
-            filters = Gio.ListStore.new(Gtk.FileFilter)
-            filters.append(text_filter)
-            filters.append(all_filter)
-            dialog.set_filters(filters)
-            dialog.set_default_filter(text_filter)
+        if not save and hasattr(Gtk, "FileDialog"):  # GTK 4.10 og nyare
+            dialog = Gtk.FileDialog(title="Opne fil", modal=True)
+            store = Gio.ListStore.new(Gtk.FileFilter)
+            for file_filter, _suffix in filters:
+                store.append(file_filter)
+            dialog.set_filters(store)
+            dialog.set_default_filter(default_filter)
             if folder:
                 dialog.set_initial_folder(Gio.File.new_for_path(folder))
-            if save:
-                dialog.set_initial_name(name)
 
             def finished(dlg, result):
                 try:
-                    file = dlg.save_finish(result) if save else dlg.open_finish(result)
+                    file = dlg.open_finish(result)
                 except GLib.Error:
-                    file = None  # avbrote
-                if file is not None or save:
-                    callback(file)
-            if save:
-                dialog.save(self, None, finished)
-            else:
-                dialog.open(self, None, finished)
+                    return  # avbrote
+                callback(file)
+            dialog.open(self, None, finished)
             return
 
-        # Eldre GTK (t.d. Ubuntu 22.04)
+        # Lagring brukar FileChooserNative, fordi berre den fortel kva filtype som vart vald.
         action = Gtk.FileChooserAction.SAVE if save else Gtk.FileChooserAction.OPEN
         native = Gtk.FileChooserNative.new("Lagre som" if save else "Opne fil", self, action,
                                            "_Lagre" if save else "_Opne", "_Avbryt")
-        native.add_filter(text_filter)
-        native.add_filter(all_filter)
+        for file_filter, _suffix in filters:
+            native.add_filter(file_filter)
+        native.set_filter(default_filter)
         if folder:
             native.set_current_folder(Gio.File.new_for_path(folder))
         if save:
-            native.set_current_name(name)
+            # Nytt dokument får namn utan filending; ho kjem frå filtypen som blir vald.
+            native.set_current_name(os.path.basename(self.path) if self.path else UNTITLED)
 
         def response(dlg, response_id):
             file = dlg.get_file() if response_id == Gtk.ResponseType.ACCEPT else None
+            chosen = dlg.get_filter()
+            suffix = next((s for f, s in filters if f == chosen and s), DEFAULT_SUFFIX)
             self._dialog_refs.remove(dlg)
-            if file is not None or save:
+            if save:
+                callback(file, suffix)
+            elif file is not None:
                 callback(file)
         native.connect("response", response)
         self._dialog_refs.append(native)

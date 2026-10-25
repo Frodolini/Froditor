@@ -13,6 +13,8 @@ cd "$ROOT"
 VERSION="${1:-$(python3 -c 'import froditor; print(froditor.__version__)')}"
 VERSION="${VERSION#v}"
 KEYRING="${KEYRING:-}"
+# Datoen for versjonen = datoen for siste commit (eller i dag utanfor git).
+RELEASE_DATE="${RELEASE_DATE:-$(git log -1 --format=%cs 2>/dev/null || date +%F)}"
 
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
@@ -26,7 +28,9 @@ install -d "$PKG/DEBIAN" \
     "$PKG/usr/share/doc/froditor"
 
 install -m 0644 froditor/*.py "$PKG/usr/lib/froditor/froditor/"
-sed -i "s/^__version__ = .*/__version__ = \"$VERSION\"/" "$PKG/usr/lib/froditor/froditor/__init__.py"
+sed -i -e "s/^__version__ = .*/__version__ = \"$VERSION\"/" \
+       -e "s/^RELEASE_DATE = .*/RELEASE_DATE = \"$RELEASE_DATE\"/" \
+       "$PKG/usr/lib/froditor/froditor/__init__.py"
 install -m 0755 bin/froditor "$PKG/usr/bin/froditor"
 install -m 0644 data/no.frodolini.Froditor.desktop "$PKG/usr/share/applications/"
 install -m 0644 data/no.frodolini.Froditor.svg "$PKG/usr/share/icons/hicolor/scalable/apps/"
@@ -50,13 +54,13 @@ Depends: python3 (>= 3.10), python3-gi, gir1.2-gtk-4.0
 Section: editors
 Priority: optional
 Homepage: https://github.com/Frodolini/Froditor
-Description: Enkel tekstbehandlar for .txt-filer
+Description: Enkel tekstbehandlar for tekstfiler og PowerShell-skript
  Froditor er ein enkel tekstbehandlar i stil med Notisblokk.
- Han opnar og lagrar vanlege tekstfiler, og har søk og erstatt,
+ Han opnar og lagrar vanlege tekstfiler og .ps1-skript, og har søk og erstatt,
  linjebryting og val av skrifttype.
 EOF
 
-(cd "$PKG" && find usr etc -type f 2>/dev/null | sort | xargs md5sum) > "$PKG/DEBIAN/md5sums"
+(cd "$PKG" && find . -type f ! -path './DEBIAN/*' -printf '%P\n' | sort | xargs md5sum) > "$PKG/DEBIAN/md5sums"
 
 mkdir -p dist
 OUT="dist/froditor_${VERSION}_all.deb"

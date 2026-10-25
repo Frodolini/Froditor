@@ -1,7 +1,7 @@
 # Froditor
 
 Ein enkel tekstbehandlar for Linux, i stil med Notisblokk. Opnar og lagrar
-vanlege `.txt`-filer – verken meir eller mindre.
+vanlege `.txt`-filer og PowerShell-skript (`.ps1`) – verken meir eller mindre.
 
 ![Froditor](docs/skjermbilete.png)
 
@@ -39,7 +39,8 @@ sudo apt purge froditor
 
 ## Funksjonar
 
-- Ny, opne, lagre og lagre som (UTF-8)
+- Ny, opne, lagre og lagre som (UTF-8), med `.txt` eller `.ps1` som filtype
+- Nye `.ps1`-filer får UTF-8 med BOM, slik at Windows PowerShell les æ, ø og å rett
 - Les òg eldre Windows-filer (Windows-1252, UTF-16) og tek vare på linjeskift (LF/CRLF)
 - Angre og gjer om
 - Søk og erstatt, med markering av alle treff

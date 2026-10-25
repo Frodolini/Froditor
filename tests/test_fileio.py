@@ -83,6 +83,14 @@ class FileIOTest(unittest.TestCase):
             self.assertEqual(f.read(), "ny")
 
 
+class DateTest(unittest.TestCase):
+    def test_format_date(self):
+        from froditor import format_date
+        self.assertEqual(format_date("2026-10-25"), "25. oktober 2026")
+        self.assertEqual(format_date("2027-01-03"), "3. januar 2027")
+        self.assertEqual(format_date(None), "under utvikling")
+
+
 class SettingsTest(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()

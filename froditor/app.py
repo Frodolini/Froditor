@@ -7,7 +7,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
 
-from . import APP_ID, REPO_URL, __version__  # noqa: E402
+from . import APP_ID, BIRTH_DATE, RELEASE_DATE, REPO_URL, __version__, format_date  # noqa: E402
 from .settings import Settings  # noqa: E402
 from .window import FroditorWindow  # noqa: E402
 
@@ -75,7 +75,9 @@ class FroditorApp(Gtk.Application):
             modal=True,
             program_name="Froditor",
             version=__version__,
-            comments="Ein enkel tekstbehandlar for .txt-filer",
+            comments=("Ein enkel tekstbehandlar for tekstfiler og PowerShell-skript\n\n"
+                      f"Fødd: {format_date(BIRTH_DATE)}\n"
+                      f"Sist oppdatert: {format_date(RELEASE_DATE)}"),
             website=REPO_URL,
             website_label="Froditor på GitHub",
             logo_icon_name=APP_ID,

@@ -115,6 +115,27 @@ class WindowTest(unittest.TestCase):
         self.win.activate_action("win.wrap", None)
         self.assertEqual(self.win.textview.get_wrap_mode(), Gtk.WrapMode.NONE)
 
+    def test_new_ps1_gets_bom_existing_keeps_encoding(self):
+        new_script = self.path("ny.ps1")
+        self.win.buffer.set_text("Write-Host 'Blåbær'")
+        self.assertTrue(self.win._write(new_script))
+        with open(new_script, "rb") as f:
+            self.assertTrue(f.read().startswith(b"\xef\xbb\xbf"))
+
+        old_script = self.path("gamal.ps1")
+        with open(old_script, "w", encoding="utf-8") as f:
+            f.write("Get-Date")
+        self.win.load_file(old_script)
+        self.win.buffer.set_text("Get-Date -Format 'yyyy'")
+        self.win.save()
+        with open(old_script, "rb") as f:
+            self.assertEqual(f.read(), b"Get-Date -Format 'yyyy'")
+
+    def test_current_suffix_follows_open_file(self):
+        self.assertEqual(self.win._current_suffix(), ".txt")
+        self.win.load_file(self.path("skript.ps1"))
+        self.assertEqual(self.win._current_suffix(), ".ps1")
+
     def test_close_with_unsaved_changes_asks(self):
         self.win.buffer.set_text("ulagra")
         self.assertTrue(self.win.emit("close-request"))  # stoppa: spør først
