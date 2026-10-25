@@ -75,7 +75,7 @@ class FroditorApp(Gtk.Application):
             modal=True,
             program_name="Froditor",
             version=__version__,
-            comments=("Ein enkel tekstbehandlar for tekstfiler og PowerShell-skript\n\n"
+            comments=("Den beste teksthandsamar for tekstfiler og PowerShell-skript\n\n"
                       f"Fødd: {format_date(BIRTH_DATE)}\n"
                       f"Sist oppdatert: {format_date(RELEASE_DATE)}"),
             website=REPO_URL,

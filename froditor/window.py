@@ -516,8 +516,9 @@ class FroditorWindow(Gtk.ApplicationWindow):
     def _update_title(self):
         name = os.path.basename(self.path) if self.path else UNTITLED
         star = "*" if self.buffer.get_modified() else ""
-        self.title_label.set_text(f"{star}{name}")
-        self.set_title(f"{star}{name} – Froditor")
+        title = f"{star}{name} – Froditor"
+        self.title_label.set_text(title)
+        self.set_title(title)
         folder = _home_short(os.path.dirname(self.path)) if self.path else ""
         self.subtitle_label.set_text(folder)
         self.subtitle_label.set_visible(bool(folder))

@@ -50,6 +50,7 @@ class WindowTest(unittest.TestCase):
 
         self.win.buffer.insert(self.win.buffer.get_end_iter(), "frå Froditor")
         self.assertEqual(self.win.get_title(), "*notat.txt – Froditor")
+        self.assertEqual(self.win.title_label.get_text(), "*notat.txt – Froditor")
 
         self.win.save()
         with open(path, "rb") as f:
