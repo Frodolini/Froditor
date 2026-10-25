@@ -82,17 +82,14 @@ packaging/build-deb.sh            # → dist/froditor_<versjon>_all.deb
 
 ### Ny versjon
 
-1. Endre `__version__` i `froditor/__init__.py` (valfritt – taggen vinn).
-2. Lag og push ein tag:
+Auk `__version__` i `froditor/__init__.py` (t.d. til `1.2.0`) og push til `main`.
 
-   ```bash
-   git tag v1.0.1
-   git push origin v1.0.1
-   ```
+GitHub Actions testar koden, byggjer `.deb`-pakka, lagar taggen og releasen
+`v1.2.0` og oppdaterer APT-kjelda på GitHub Pages. Etter nokre minutt får alle
+maskiner den nye versjonen ved neste `apt upgrade`. Commits som ikkje endrar
+versjonsnummeret, blir berre testa.
 
-GitHub Actions testar koden, byggjer `.deb`-pakka, lagar ein release og
-oppdaterer APT-kjelda på GitHub Pages. Etter nokre minutt får alle maskiner
-den nye versjonen ved neste `apt upgrade`.
+Det går òg an å publisere med ein tag for hand: `git tag v1.2.0 && git push origin v1.2.0`.
 
 ### Førstegongsoppsett av repoet
 
