@@ -1,0 +1,6 @@
+# Oppdateringar for Froditor – https://github.com/Frodolini/Froditor
+# Lagt inn av froditor-pakka. Fjern med: sudo apt purge froditor
+Types: deb
+URIs: https://frodolini.github.io/Froditor/
+Suites: ./
+Signed-By: /usr/share/keyrings/froditor-archive-keyring.gpg

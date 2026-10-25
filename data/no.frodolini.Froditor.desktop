@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Froditor
+GenericName=Text Editor
+GenericName[nn]=Tekstbehandlar
+GenericName[nb]=Tekstbehandler
+Comment=Simple editor for plain text files
+Comment[nn]=Enkel tekstbehandlar for .txt-filer
+Comment[nb]=Enkel tekstbehandler for .txt-filer
+Exec=froditor %F
+Icon=no.frodolini.Froditor
+Terminal=false
+Categories=Utility;TextEditor;GTK;
+MimeType=text/plain;
+Keywords=text;editor;notepad;txt;
+Keywords[nn]=tekst;notat;notisblokk;editor;txt;
+Keywords[nb]=tekst;notat;notisblokk;editor;txt;
+StartupNotify=true

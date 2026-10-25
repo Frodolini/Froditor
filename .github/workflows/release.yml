@@ -1,0 +1,89 @@
+name: Bygg og publiser
+
+# Ny versjon:  git tag v1.0.1 && git push origin v1.0.1
+on:
+  push:
+    tags: ["v*"]
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer avhengigheiter
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-gtk-4.0 xvfb
+      - name: Køyr testar
+        env:
+          GSK_RENDERER: cairo
+        run: xvfb-run -a /usr/bin/python3 -m unittest discover -s tests -t . -v
+
+  release:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer verktøy
+        run: sudo apt-get update && sudo apt-get install -y apt-utils dpkg-dev
+
+      - name: Finn versjon
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="$(python3 -c 'import froditor; print(froditor.__version__)')"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Hent signeringsnøkkel
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$GPG_PRIVATE_KEY" ]]; then
+            echo "::error::Manglar hemmelegheita GPG_PRIVATE_KEY. Sjå README (Førstegongsoppsett)."
+            exit 1
+          fi
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          KEY="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')"
+          echo "GPG_KEY=$KEY" >> "$GITHUB_ENV"
+          gpg --export "$KEY" > "$RUNNER_TEMP/froditor-archive-keyring.gpg"
+
+      - name: Bygg .deb
+        run: KEYRING="$RUNNER_TEMP/froditor-archive-keyring.gpg" packaging/build-deb.sh "$VERSION"
+
+      - name: Bygg APT-kjelde
+        run: packaging/build-apt-repo.sh site "$GPG_KEY" dist/*.deb
+
+      - name: Last opp til GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Lag GitHub-release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.deb --title "Froditor $VERSION" --generate-notes
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

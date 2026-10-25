@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Froditor</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg:#f6f7f9; --fg:#1d2430; --muted:#5b6575; --card:#fff; --code:#eef1f5; --accent:#1f5fa8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#16191e; --fg:#e7eaee; --muted:#9aa3b1; --card:#1f242b; --code:#2a3039; --accent:#7fb2ee; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:40px 16px 64px; }
+  h1 { margin:0 0 4px; font-size:2rem; } .muted { color:var(--muted); }
+  section { background:var(--card); border-radius:12px; padding:18px 20px; margin-top:20px; }
+  h2 { margin:0 0 8px; font-size:1.1rem; }
+  pre { background:var(--code); padding:12px 14px; border-radius:8px; overflow-x:auto; font-size:.9rem; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Froditor</h1>
+  <p class="muted">Enkel tekstbehandlar for Linux · versjon @VERSION@</p>
+
+  <section>
+    <h2>Installer (Debian, Ubuntu, Mint …)</h2>
+    <pre>wget -O /tmp/froditor.deb https://frodolini.github.io/Froditor/froditor_latest_all.deb
+sudo apt install /tmp/froditor.deb</pre>
+    <p>Pakka legg sjølv til denne kjelda, så nye versjonar kjem med vanleg oppdatering:</p>
+    <pre>sudo apt update &amp;&amp; sudo apt upgrade</pre>
+  </section>
+
+  <section>
+    <h2>Avinstaller</h2>
+    <pre>sudo apt purge froditor</pre>
+  </section>
+
+  <p class="muted">Kjeldekode: <a href="https://github.com/Frodolini/Froditor">github.com/Frodolini/Froditor</a></p>
+</main>
+</body>
+</html>
