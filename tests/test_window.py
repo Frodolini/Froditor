@@ -40,6 +40,13 @@ class WindowTest(unittest.TestCase):
     def path(self, name):
         return os.path.join(self.dir.name, name)
 
+    def test_header_bar_is_green(self):
+        header = self.win.get_titlebar()
+        self.assertTrue(header.has_css_class("froditor-header"))
+        from froditor.window import HEADER_CSS
+
+        self.assertIn("#2e7d32", HEADER_CSS)
+
     def test_open_edit_save(self):
         path = self.path("notat.txt")
         with open(path, "wb") as f:

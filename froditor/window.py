@@ -62,6 +62,8 @@ class FroditorWindow(Gtk.ApplicationWindow):
 
     def _build_ui(self, text_name: str):
         header = Gtk.HeaderBar()
+        header.add_css_class("froditor-header")
+        _install_header_style()
         self.title_label = Gtk.Label(ellipsize=Pango.EllipsizeMode.END)
         self.title_label.add_css_class("title")
         self.subtitle_label = Gtk.Label(ellipsize=Pango.EllipsizeMode.START)
@@ -771,3 +773,47 @@ class FroditorWindow(Gtk.ApplicationWindow):
             dlg.destroy()
         dialog.connect("response", response)
         dialog.present()
+
+
+HEADER_CSS = """
+headerbar.froditor-header {
+    background: #2e7d32;
+    color: #ffffff;
+    box-shadow: none;
+}
+headerbar.froditor-header:backdrop {
+    background: #5a9a5e;
+    color: rgba(255, 255, 255, 0.8);
+}
+headerbar.froditor-header label.subtitle {
+    color: rgba(255, 255, 255, 0.85);
+}
+headerbar.froditor-header button {
+    color: #ffffff;
+}
+headerbar.froditor-header button:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+headerbar.froditor-header button:active,
+headerbar.froditor-header button:checked {
+    background: rgba(255, 255, 255, 0.3);
+}
+"""
+
+_header_style_installed = False
+
+
+def _install_header_style():
+    """Gjer tittellinja grøn. Blir lagd inn éin gong for heile programmet."""
+    global _header_style_installed
+    display = Gdk.Display.get_default()
+    if _header_style_installed or display is None:
+        return
+    provider = Gtk.CssProvider()
+    if hasattr(provider, "load_from_string"):
+        provider.load_from_string(HEADER_CSS)
+    else:
+        provider.load_from_data(HEADER_CSS.encode())
+    Gtk.StyleContext.add_provider_for_display(display, provider,
+                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+    _header_style_installed = True
