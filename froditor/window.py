@@ -15,9 +15,10 @@ UNTITLED = "Utan namn"
 # (namn i fillista, filending, mønster)
 FILE_TYPES = [
     ("Tekstfiler (*.txt)", ".txt", ["*.txt", "*.TXT"]),
+    ("Markdown (*.md)", ".md", ["*.MD", "*.markdown"]),
     ("PowerShell-skript (*.ps1)", ".ps1", ["*.ps1", "*.PS1"]),
 ]
-DEFAULT_SUFFIX = ".txt"
+DEFAULT_SUFFIX = ".md"
 MIN_FONT_SIZE = 6
 MAX_FONT_SIZE = 72
 MAX_HIGHLIGHTS = 5000
