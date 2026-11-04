@@ -140,7 +140,7 @@ class WindowTest(unittest.TestCase):
             self.assertEqual(f.read(), b"Get-Date -Format 'yyyy'")
 
     def test_current_suffix_follows_open_file(self):
-        self.assertEqual(self.win._current_suffix(), ".txt")
+        self.assertEqual(self.win._current_suffix(), ".md")
         self.win.load_file(self.path("skript.ps1"))
         self.assertEqual(self.win._current_suffix(), ".ps1")
 
