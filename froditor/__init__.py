@@ -1,6 +1,6 @@
 """Froditor – ein enkel tekstbehandlar for Linux."""
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 APP_ID = "no.frodolini.Froditor"
 REPO_URL = "https://github.com/Frodolini/Froditor"
 
